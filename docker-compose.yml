@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: propofol-postgres
+    environment:
+      POSTGRES_DB: backbone
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: asdf1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d backbone"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: propofol-be
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      DB_URL: jdbc:postgresql://postgres:5432/backbone
+      DB_USERNAME: user
+      DB_PASSWORD: asdf1234
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

@@ -1,0 +1,12 @@
+FROM gradle:8.13-jdk17 AS builder
+WORKDIR /workspace
+COPY . .
+RUN gradle bootJar --no-daemon
+
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+ENV TZ=Asia/Seoul
+ENV SPRING_PROFILES_ACTIVE=local
+COPY --from=builder /workspace/build/libs/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

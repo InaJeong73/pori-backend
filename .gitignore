@@ -1,0 +1,17 @@
+.gradle/
+.gradle-home/
+build/
+out/
+*.log
+*.iml
+*.class
+*.jar
+!gradle-wrapper.jar
+.idea/
+.vscode/
+.env
+logs/
+.reference/
+.claude/
+.omx/
+HELP.md
