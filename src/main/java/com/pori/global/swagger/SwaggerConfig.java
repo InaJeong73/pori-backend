@@ -51,7 +51,8 @@ public class SwaggerConfig {
                                 - `GET /health` - 서버 상태 확인
 
                                 ### 주요 개념
-                                - `handle`: 유저 고유 식별자입니다. 영문, 숫자, 언더스코어 3~20자를 사용합니다.
+                                - `nickname`: 프로필에 표시되는 이름입니다.
+                                - `handle`: 시스템이 자동 생성하는 유저 고유 식별자입니다.
                                 - `privacyLevel`: `1`은 전체 공개, `2`는 링크 공유 공개, `3`은 비공개입니다.
                                 - Give-to-Get: 일부 피드/채팅 기능은 본인 포트폴리오가 `PUBLISHED` 상태이고 기준 점수를 충족해야 사용할 수 있습니다.
                                 - `accessToken` 유효 기간은 15분, `refreshToken` 유효 기간은 14일입니다.

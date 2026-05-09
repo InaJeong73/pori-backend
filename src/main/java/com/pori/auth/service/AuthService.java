@@ -34,13 +34,12 @@ public class AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new BusinessException(GlobalErrorCode.CONFLICT);
         }
-        if (userRepository.existsByHandle(request.handle())) {
-            throw new BusinessException(GlobalErrorCode.CONFLICT);
-        }
+        String handle = generateUniqueHandle(request.email());
         User user = User.builder()
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
-                .handle(request.handle())
+                .handle(handle)
+                .displayName(request.nickname())
                 .build();
         userRepository.save(user);
         return issueTokens(user);
@@ -71,5 +70,26 @@ public class AuthService {
                 jwtProvider.createAccessToken(user.getId(), user.getHandle()),
                 jwtProvider.createRefreshToken(user.getId(), user.getHandle())
         );
+    }
+
+    private String generateUniqueHandle(String email) {
+        String localPart = email == null ? "user" : email.split("@", 2)[0];
+        String base = localPart.toLowerCase()
+                .replaceAll("[^a-z0-9_]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^_|_$", "");
+        if (base.isBlank()) {
+            base = "user";
+        }
+        base = base.substring(0, Math.min(base.length(), 20));
+
+        String candidate = base;
+        int suffix = 1;
+        while (userRepository.existsByHandle(candidate)) {
+            String tail = "_" + suffix++;
+            String prefix = base.substring(0, Math.min(base.length(), 20 - tail.length()));
+            candidate = prefix + tail;
+        }
+        return candidate;
     }
 }

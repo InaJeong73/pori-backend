@@ -53,10 +53,11 @@ public class User {
     private Instant createdAt;
 
     @Builder
-    public User(String email, String passwordHash, String handle) {
+    public User(String email, String passwordHash, String handle, String displayName) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.handle = handle;
+        this.displayName = displayName;
     }
 
     public void updateProfile(String handle, String displayName, JobCategory jobCategory,

@@ -32,7 +32,7 @@ public class AuthController {
 
     @Operation(
             summary = "회원가입",
-            description = "이메일·비밀번호·핸들로 계정을 생성하고 JWT 토큰을 즉시 발급합니다. 인증 불필요."
+            description = "이메일·비밀번호·닉네임으로 계정을 생성하고 JWT 토큰을 즉시 발급합니다. 인증 불필요."
     )
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<TokenResponse>> register(@Valid @RequestBody RegisterRequest request) {

@@ -13,6 +13,6 @@ public record RegisterRequest(
         @Schema(description = "비밀번호 (최소 8자)", example = "password123")
         @NotBlank @Size(min = 8) String password,
 
-        @Schema(description = "고유 핸들 (영문·숫자·언더스코어, 3~20자). 이후 변경 가능.", example = "alice_fe")
-        @NotBlank @Size(min = 3, max = 20) String handle
+        @Schema(description = "닉네임. 프로필 표시 이름으로 사용됩니다.", example = "포리유저")
+        @NotBlank @Size(max = 30) String nickname
 ) {}
