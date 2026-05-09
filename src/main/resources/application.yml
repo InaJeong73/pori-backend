@@ -1,8 +1,17 @@
 spring:
   application:
     name: Pori_BE
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/pori}
+    username: ${DB_USERNAME:user}
+    password: ${DB_PASSWORD:change_me}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
 
 server:
   port: ${SERVER_PORT:8080}
@@ -19,3 +28,8 @@ cors:
 springdoc:
   swagger-ui:
     path: /swagger-ui/index.html
+
+logging:
+  level:
+    com.pori: INFO
+    org.springframework.security: WARN
