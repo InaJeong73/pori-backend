@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CorsConfigTest {
 
     private static final String CLOUD_RUN_ORIGIN = "https://pori-be-721529338032.asia-northeast3.run.app";
+    private static final String FRONTEND_ORIGIN = "https://pori-five.vercel.app";
 
     @Autowired
     private MockMvc mockMvc;
@@ -26,5 +27,12 @@ class CorsConfigTest {
         mockMvc.perform(get("/health").header(ORIGIN, CLOUD_RUN_ORIGIN))
                 .andExpect(status().isOk())
                 .andExpect(header().string(ACCESS_CONTROL_ALLOW_ORIGIN, CLOUD_RUN_ORIGIN));
+    }
+
+    @Test
+    void allowsRequestsFromDeployedFrontendOrigin() throws Exception {
+        mockMvc.perform(get("/health").header(ORIGIN, FRONTEND_ORIGIN))
+                .andExpect(status().isOk())
+                .andExpect(header().string(ACCESS_CONTROL_ALLOW_ORIGIN, FRONTEND_ORIGIN));
     }
 }

@@ -11,8 +11,19 @@ public record CorsProperties(
         List<String> allowedOriginPatterns
 ) {
     public CorsProperties {
-        allowedOrigins = allowedOrigins == null ? List.of() : List.copyOf(allowedOrigins);
+        allowedOrigins = withDeployedFrontendOrigin(allowedOrigins);
         allowedOriginPatterns = withCloudRunSwaggerOrigin(allowedOriginPatterns);
+    }
+
+    private static List<String> withDeployedFrontendOrigin(List<String> configuredOrigins) {
+        List<String> origins = new ArrayList<>(
+                configuredOrigins == null ? List.of() : configuredOrigins
+        );
+        String frontendOrigin = "https://pori-five.vercel.app";
+        if (!origins.contains(frontendOrigin)) {
+            origins.add(frontendOrigin);
+        }
+        return List.copyOf(origins);
     }
 
     private static List<String> withCloudRunSwaggerOrigin(List<String> configuredPatterns) {
