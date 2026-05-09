@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  PROJECT_ID: Aingthon
+  PROJECT_ID: lexical-pattern-495805-a9
   REGION: asia-northeast3
   REPOSITORY: pori-be
   IMAGE: pori-be
