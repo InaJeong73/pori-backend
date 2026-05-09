@@ -40,8 +40,13 @@ public class DataInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        seedTechStack();
-        seedUsers();
+        if (System.getenv("K_SERVICE") != null) return; // Cloud Run에서는 스킵
+        try {
+            seedTechStack();
+            seedUsers();
+        } catch (Exception e) {
+            System.err.println("[DataInitializer] 시드 데이터 초기화 실패 (무시됨): " + e.getMessage());
+        }
     }
 
     private void seedTechStack() {
