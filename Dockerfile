@@ -8,4 +8,4 @@ WORKDIR /app
 ENV TZ=Asia/Seoul
 COPY --from=builder /workspace/build/libs/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-XX:+UseG1GC", "-jar", "/app/app.jar"]
