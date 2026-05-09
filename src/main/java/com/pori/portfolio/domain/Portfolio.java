@@ -1,110 +1,96 @@
 package com.pori.portfolio.domain;
 
+import com.pori.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "portfolios")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Portfolio {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
-    private String authorName;
+    private int version = 1;
+
+    private UUID parentPortfolioId;
 
     @Column(nullable = false)
     private String title;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private JobCategory jobCategory;
+    @Column(columnDefinition = "TEXT")
+    private String intro;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "tech_stack")
+    private List<String> techStack = new ArrayList<>();
 
     @Column(nullable = false)
-    private String portfolioUrl;
-
-    @Column(length = 1000)
-    private String skills;           // comma-separated
-
-    @Column(nullable = false, length = 2000)
-    private String mainProject;
-
-    @Column(nullable = false, length = 2000)
-    private String role;
-
-    @Column(length = 2000)
-    private String problemSolved;
-
-    @Column(length = 2000)
-    private String techReason;
-
-    @Column(length = 2000)
-    private String result;
-
-    private String githubUrl;
-    private String deployUrl;
-
-    @Column(nullable = false, length = 2000)
-    private String summary;
-
-    // Evaluation results
-    private int poriScore;
+    private short privacyLevel = 1;
 
     @Enumerated(EnumType.STRING)
-    private PoriGrade grade;
-
-    private boolean isPublic;
-    private boolean isTopReference;
-    private boolean isHighTrust;
-
-    @Embedded
-    private CategoryScores categoryScores;
-
-    @Column(length = 3000)
-    private String strengths;        // JSON array as string
-
-    @Column(length = 3000)
-    private String improvements;     // JSON array as string
-
-    @Column(length = 2000)
-    private String recommendation;
+    @Column(nullable = false)
+    private PortfolioStatus status = PortfolioStatus.PENDING;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    @Column(updatable = false)
+    private Instant createdAt;
 
-    public List<String> getSkillList() {
-        if (skills == null || skills.isBlank()) return List.of();
-        return Arrays.stream(skills.split(",")).map(String::trim).toList();
+    private Instant publishedAt;
+
+    @Builder
+    public Portfolio(User user, String title, String intro, List<String> techStack, short privacyLevel) {
+        this.user = user;
+        this.title = title;
+        this.intro = intro;
+        this.techStack = techStack != null ? techStack : new ArrayList<>();
+        this.privacyLevel = privacyLevel;
     }
 
-    public List<String> getStrengthList() {
-        return parseJsonArray(strengths);
+    public void startEvaluating() {
+        this.status = PortfolioStatus.EVALUATING;
     }
 
-    public List<String> getImprovementList() {
-        return parseJsonArray(improvements);
+    public void publish() {
+        this.status = PortfolioStatus.PUBLISHED;
+        this.publishedAt = Instant.now();
     }
 
-    private List<String> parseJsonArray(String json) {
-        if (json == null || json.isBlank()) return List.of();
-        String inner = json.strip();
-        if (inner.startsWith("[")) inner = inner.substring(1);
-        if (inner.endsWith("]")) inner = inner.substring(0, inner.length() - 1);
-        return Arrays.stream(inner.split("\",\""))
-                .map(s -> s.replaceAll("^\"|\"$", "").trim())
-                .filter(s -> !s.isBlank())
-                .toList();
+    public void fail() {
+        this.status = PortfolioStatus.FAILED;
+    }
+
+    public void archive() {
+        this.status = PortfolioStatus.ARCHIVED;
+    }
+
+    public void update(String title, String intro, List<String> techStack, short privacyLevel) {
+        if (title != null) this.title = title;
+        if (intro != null) this.intro = intro;
+        if (techStack != null) this.techStack = techStack;
+        this.privacyLevel = privacyLevel;
+    }
+
+    public void setVersion(int version, UUID parentId) {
+        this.version = version;
+        this.parentPortfolioId = parentId;
     }
 }

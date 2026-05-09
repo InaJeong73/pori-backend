@@ -1,91 +1,106 @@
 package com.pori.portfolio.service;
 
 import com.pori.global.exception.BusinessException;
-import com.pori.portfolio.domain.JobCategory;
+import com.pori.global.exception.errorcode.GlobalErrorCode;
 import com.pori.portfolio.domain.Portfolio;
-import com.pori.portfolio.domain.PoriGrade;
-import com.pori.portfolio.dto.request.PortfolioCreateRequest;
-import com.pori.portfolio.dto.response.PortfolioDetailResponse;
-import com.pori.portfolio.dto.response.PortfolioSummaryResponse;
-import com.pori.portfolio.exception.PortfolioErrorCode;
+import com.pori.portfolio.dto.*;
+import com.pori.portfolio.repository.AnonymousCardRepository;
+import com.pori.portfolio.repository.EvaluationRepository;
 import com.pori.portfolio.repository.PortfolioRepository;
-import com.pori.portfolio.service.ai.AiEvaluationService;
-import com.pori.portfolio.service.ai.AiEvaluationService.EvaluationResult;
-import lombok.RequiredArgsConstructor;
+import com.pori.user.domain.User;
+import com.pori.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PortfolioService {
 
     private final PortfolioRepository portfolioRepository;
-    private final AiEvaluationService aiEvaluationService;
+    private final AnonymousCardRepository anonymousCardRepository;
+    private final EvaluationRepository evaluationRepository;
+    private final UserService userService;
+    private final AiPipelineService aiPipelineService;
+
+    public PortfolioService(PortfolioRepository portfolioRepository,
+                             AnonymousCardRepository anonymousCardRepository,
+                             EvaluationRepository evaluationRepository,
+                             UserService userService,
+                             AiPipelineService aiPipelineService) {
+        this.portfolioRepository = portfolioRepository;
+        this.anonymousCardRepository = anonymousCardRepository;
+        this.evaluationRepository = evaluationRepository;
+        this.userService = userService;
+        this.aiPipelineService = aiPipelineService;
+    }
 
     @Transactional
-    public PortfolioDetailResponse create(PortfolioCreateRequest req) {
-        EvaluationResult eval = aiEvaluationService.evaluate(req);
-        int score = eval.categoryScores().average();
-        PoriGrade grade = PoriGrade.from(score);
-
+    public PortfolioSummaryResponse create(UUID userId, PortfolioCreateRequest request) {
+        User user = userService.findById(userId);
         Portfolio portfolio = Portfolio.builder()
-                .authorName(req.authorName())
-                .title(req.title())
-                .jobCategory(req.jobCategory())
-                .portfolioUrl(req.portfolioUrl())
-                .skills(req.skills() == null ? "" : String.join(",", req.skills()))
-                .mainProject(req.mainProject())
-                .role(req.role())
-                .problemSolved(req.problemSolved())
-                .techReason(req.techReason())
-                .result(req.result())
-                .githubUrl(req.githubUrl())
-                .deployUrl(req.deployUrl())
-                .summary(req.summary())
-                .poriScore(score)
-                .grade(grade)
-                .isPublic(score >= 60)
-                .isTopReference(score >= 80)
-                .isHighTrust(score >= 90)
-                .categoryScores(eval.categoryScores())
-                .strengths(toJsonArray(eval.strengths()))
-                .improvements(toJsonArray(eval.improvements()))
-                .recommendation(eval.recommendation())
+                .user(user)
+                .title(request.title())
+                .intro(request.intro())
+                .techStack(request.techStack())
+                .privacyLevel(request.privacyLevel())
                 .build();
-
-        return PortfolioDetailResponse.from(portfolioRepository.save(portfolio));
+        portfolioRepository.save(portfolio);
+        aiPipelineService.evaluate(portfolio.getId());
+        return PortfolioSummaryResponse.from(portfolio);
     }
 
-    @Transactional(readOnly = true)
-    public List<PortfolioSummaryResponse> getPublicList(String jobCategory, Integer minScore) {
-        JobCategory category = (jobCategory == null || jobCategory.isBlank())
-                ? null
-                : JobCategory.valueOf(jobCategory.toUpperCase());
-        int min = (minScore == null) ? 0 : minScore;
-        return portfolioRepository.findPublicPortfolios(category, min)
-                .stream().map(PortfolioSummaryResponse::from).toList();
+    public List<PortfolioSummaryResponse> getMyPortfolios(UUID userId) {
+        return portfolioRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(PortfolioSummaryResponse::from)
+                .toList();
     }
 
-    @Transactional(readOnly = true)
-    public PortfolioDetailResponse getDetail(Long id) {
-        Portfolio portfolio = portfolioRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(PortfolioErrorCode.NOT_FOUND));
-        if (!portfolio.isPublic()) {
-            throw new BusinessException(PortfolioErrorCode.NOT_PUBLIC);
-        }
-        return PortfolioDetailResponse.from(portfolio);
+    public PortfolioDetailResponse getMyPortfolioDetail(UUID userId, UUID portfolioId) {
+        Portfolio portfolio = portfolioRepository.findByIdAndUserId(portfolioId, userId)
+                .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
+        var eval = evaluationRepository.findByPortfolioId(portfolioId).orElse(null);
+        return PortfolioDetailResponse.from(portfolio, eval);
     }
 
-    private String toJsonArray(List<String> items) {
-        if (items == null || items.isEmpty()) return "[]";
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < items.size(); i++) {
-            sb.append("\"").append(items.get(i).replace("\"", "\\\"")).append("\"");
-            if (i < items.size() - 1) sb.append(",");
-        }
-        sb.append("]");
-        return sb.toString();
+    @Transactional
+    public PortfolioSummaryResponse update(UUID userId, UUID portfolioId, PortfolioUpdateRequest request) {
+        Portfolio portfolio = getOwnedPortfolio(userId, portfolioId);
+        portfolio.update(request.title(), request.intro(), request.techStack(), request.privacyLevel());
+        return PortfolioSummaryResponse.from(portfolio);
+    }
+
+    @Transactional
+    public void delete(UUID userId, UUID portfolioId) {
+        Portfolio portfolio = getOwnedPortfolio(userId, portfolioId);
+        anonymousCardRepository.deleteByPortfolioId(portfolioId);
+        portfolioRepository.delete(portfolio);
+    }
+
+    @Transactional
+    public PortfolioSummaryResponse republish(UUID userId, UUID portfolioId, PortfolioCreateRequest request) {
+        Portfolio old = getOwnedPortfolio(userId, portfolioId);
+        old.archive();
+        anonymousCardRepository.deleteByPortfolioId(portfolioId);
+
+        User user = userService.findById(userId);
+        Portfolio newPortfolio = Portfolio.builder()
+                .user(user)
+                .title(request.title())
+                .intro(request.intro())
+                .techStack(request.techStack())
+                .privacyLevel(request.privacyLevel())
+                .build();
+        newPortfolio.setVersion(old.getVersion() + 1, old.getId());
+        portfolioRepository.save(newPortfolio);
+        aiPipelineService.evaluate(newPortfolio.getId());
+        return PortfolioSummaryResponse.from(newPortfolio);
+    }
+
+    private Portfolio getOwnedPortfolio(UUID userId, UUID portfolioId) {
+        return portfolioRepository.findByIdAndUserId(portfolioId, userId)
+                .orElseThrow(() -> new BusinessException(GlobalErrorCode.NOT_FOUND));
     }
 }

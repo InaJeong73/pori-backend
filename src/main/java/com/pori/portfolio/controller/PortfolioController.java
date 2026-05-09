@@ -1,40 +1,72 @@
 package com.pori.portfolio.controller;
 
 import com.pori.global.response.ApiResponse;
-import com.pori.portfolio.dto.request.PortfolioCreateRequest;
-import com.pori.portfolio.dto.response.PortfolioDetailResponse;
-import com.pori.portfolio.dto.response.PortfolioSummaryResponse;
+import com.pori.global.security.UserPrincipal;
+import com.pori.portfolio.dto.*;
 import com.pori.portfolio.service.PortfolioService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/portfolios")
-@RequiredArgsConstructor
+@RequestMapping("/portfolios")
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
 
-    @GetMapping
-    public ApiResponse<List<PortfolioSummaryResponse>> list(
-            @RequestParam(required = false) String jobCategory,
-            @RequestParam(required = false) Integer minScore
-    ) {
-        return ApiResponse.ok(portfolioService.getPublicList(jobCategory, minScore));
-    }
-
-    @GetMapping("/{id}")
-    public ApiResponse<PortfolioDetailResponse> detail(@PathVariable Long id) {
-        return ApiResponse.ok(portfolioService.getDetail(id));
+    public PortfolioController(PortfolioService portfolioService) {
+        this.portfolioService = portfolioService;
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<PortfolioDetailResponse> create(@Valid @RequestBody PortfolioCreateRequest request) {
-        return ApiResponse.created(portfolioService.create(request));
+    public ResponseEntity<ApiResponse<PortfolioSummaryResponse>> create(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody PortfolioCreateRequest request) {
+        return ResponseEntity.status(201).body(ApiResponse.created(
+                portfolioService.create(principal.userId(), request)));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<PortfolioSummaryResponse>>> getMyPortfolios(
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(ApiResponse.ok(portfolioService.getMyPortfolios(principal.userId())));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<PortfolioDetailResponse>> getDetail(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                portfolioService.getMyPortfolioDetail(principal.userId(), id)));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<PortfolioSummaryResponse>> update(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @RequestBody PortfolioUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                portfolioService.update(principal.userId(), id, request)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id) {
+        portfolioService.delete(principal.userId(), id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/republish")
+    public ResponseEntity<ApiResponse<PortfolioSummaryResponse>> republish(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @Valid @RequestBody PortfolioCreateRequest request) {
+        return ResponseEntity.status(201).body(ApiResponse.created(
+                portfolioService.republish(principal.userId(), id, request)));
     }
 }
