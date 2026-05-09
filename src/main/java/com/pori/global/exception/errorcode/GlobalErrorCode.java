@@ -1,4 +1,4 @@
-﻿package com.pori.global.exception.errorcode;
+package com.pori.global.exception.errorcode;
 
 import org.springframework.http.HttpStatus;
 

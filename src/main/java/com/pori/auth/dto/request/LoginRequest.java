@@ -1,4 +1,4 @@
-﻿package com.pori.auth.dto.request;
+package com.pori.auth.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;

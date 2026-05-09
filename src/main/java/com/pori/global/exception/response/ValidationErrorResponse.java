@@ -1,4 +1,4 @@
-﻿package com.pori.global.exception.response;
+package com.pori.global.exception.response;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-﻿package com.pori.health;
+package com.pori.health;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

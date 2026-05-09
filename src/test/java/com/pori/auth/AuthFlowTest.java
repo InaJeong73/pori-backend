@@ -1,4 +1,4 @@
-﻿package com.pori.auth;
+package com.pori.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

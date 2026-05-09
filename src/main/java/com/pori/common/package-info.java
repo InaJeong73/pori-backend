@@ -1,1 +1,1 @@
-﻿package com.pori.common;
+package com.pori.common;

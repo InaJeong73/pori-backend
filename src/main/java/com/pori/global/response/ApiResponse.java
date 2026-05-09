@@ -1,4 +1,4 @@
-﻿package com.pori.global.response;
+package com.pori.global.response;
 
 import com.pori.global.exception.errorcode.ErrorCode;
 

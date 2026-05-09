@@ -1,4 +1,4 @@
-﻿package com.pori.user.domain;
+package com.pori.user.domain;
 
 import com.pori.user.domain.type.Role;
 import jakarta.persistence.Column;

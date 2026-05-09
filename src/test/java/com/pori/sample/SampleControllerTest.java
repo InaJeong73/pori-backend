@@ -1,4 +1,4 @@
-﻿package com.pori.sample;
+package com.pori.sample;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

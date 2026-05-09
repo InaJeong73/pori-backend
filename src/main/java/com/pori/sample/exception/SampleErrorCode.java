@@ -1,4 +1,4 @@
-﻿package com.pori.sample.exception;
+package com.pori.sample.exception;
 
 import com.pori.global.exception.errorcode.ErrorCode;
 import org.springframework.http.HttpStatus;

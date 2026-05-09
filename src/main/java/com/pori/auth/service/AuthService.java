@@ -1,4 +1,4 @@
-﻿package com.pori.auth.service;
+package com.pori.auth.service;
 
 import com.pori.auth.dto.request.LoginRequest;
 import com.pori.auth.dto.request.RegisterRequest;

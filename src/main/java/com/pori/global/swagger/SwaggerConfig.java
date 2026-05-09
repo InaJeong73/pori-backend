@@ -1,4 +1,4 @@
-﻿package com.pori.global.swagger;
+package com.pori.global.swagger;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;

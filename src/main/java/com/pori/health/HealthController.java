@@ -1,4 +1,4 @@
-﻿package com.pori.health;
+package com.pori.health;
 
 import com.pori.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;

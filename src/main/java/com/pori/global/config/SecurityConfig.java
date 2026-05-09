@@ -1,4 +1,4 @@
-﻿package com.pori.global.config;
+package com.pori.global.config;
 
 import com.pori.global.security.filter.JwtAccessDeniedHandler;
 import com.pori.global.security.filter.JwtAuthenticationEntryPoint;
@@ -43,19 +43,18 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/", "/index.html", "/new.html", "/result.html", "/detail.html",
+                                "/style.css",
                                 "/error",
                                 "/health",
                                 "/actuator/health",
                                 "/auth/**",
+                                "/api/portfolios/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/h2-console/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/samples/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/samples/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/samples/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/samples/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)

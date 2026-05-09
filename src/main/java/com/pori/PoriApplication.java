@@ -1,4 +1,4 @@
-﻿package com.pori;
+package com.pori;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

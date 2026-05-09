@@ -1,4 +1,4 @@
-﻿package com.pori.user.repository;
+package com.pori.user.repository;
 
 import com.pori.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-﻿package com.pori.global.config;
+package com.pori.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

@@ -1,4 +1,4 @@
-﻿package com.pori.global.security.jwt;
+package com.pori.global.security.jwt;
 
 import com.pori.global.config.JwtProperties;
 import com.pori.global.security.AuthPrincipal;
