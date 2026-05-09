@@ -3,7 +3,7 @@ spring:
     name: Pori_BE
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/pori}
-    username: ${DB_USERNAME:user}
+    username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:asdf}
   jpa:
     hibernate:
@@ -27,6 +27,7 @@ jwt:
 springdoc:
   swagger-ui:
     path: /swagger-ui/index.html
+  pre-loading-enabled: true
 
 logging:
   level:
